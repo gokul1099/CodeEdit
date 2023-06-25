@@ -40,6 +40,10 @@ class DebugAreaViewModel: ObservableObject {
     /// Indicates whether the breakpoint is enabled or not
     @Published
     var isBreakpointEnabled: Bool = true
+    
+    /// Currently Selected tab (Terminal or Debugger or Output)
+    @Published
+    var selectedTab:DebugAreaTab? = .terminal
 
     /// Search value to filter in drawer
     @Published

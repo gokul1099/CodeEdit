@@ -35,8 +35,11 @@ struct StatusBarView: View {
     /// The actual status bar
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
-//            StatusBarBreakpointButton()
-//            StatusBarDivider()
+            StatusBarBreakpointButton()
+            StatusBarDivider()
+            HStack(alignment: .center) {
+                StatusBarDebugArea()
+            }
             Spacer()
             HStack(alignment: .center, spacing: 10) {
                 StatusBarCursorLocationLabel()

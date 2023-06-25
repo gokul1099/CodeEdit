@@ -14,22 +14,13 @@ struct DebugAreaView: View {
     @EnvironmentObject
     private var model: DebugAreaViewModel
 
-    @State var selection: DebugAreaTab? = .terminal
-
     var body: some View {
         VStack(spacing: 0) {
-            if let selection {
+            if let selection =  model.selectedTab {
                 selection
             } else {
                 Text("Tab not found")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }
-        .safeAreaInset(edge: .leading, spacing: 0) {
-            HStack(spacing: 0) {
-                AreaTabBar(items: DebugAreaTab.allCases, selection: $selection, position: .side)
-                Divider()
-                    .overlay(Color(nsColor: colorScheme == .dark ? .black : .clear))
             }
         }
         .overlay(alignment: .bottomTrailing) {
