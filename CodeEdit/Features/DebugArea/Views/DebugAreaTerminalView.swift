@@ -14,6 +14,7 @@ struct DebugAreaTerminal: Identifiable, Equatable {
     var terminalTitle: String
     var shell: String
     var customTitle: Bool
+    var isGrouped: Bool
 
     init(id: UUID, url: URL, title: String, shell: String) {
         self.id = id
@@ -22,6 +23,31 @@ struct DebugAreaTerminal: Identifiable, Equatable {
         self.url = url
         self.shell = shell
         self.customTitle = false
+        self.isGrouped = false
+    }
+}
+
+struct ListItemDropDelegate: DropDelegate {
+    @Binding var terminals: [DebugAreaTerminal]
+    @Binding var groups: [DebugAreaTerminal]
+    var item: DebugAreaTerminal
+    func performDrop(info: DropInfo) -> Bool {
+        guard let droppedItem = info.itemProviders(for: ["terminal.id.uuidString"]).first else {return false}
+        let itemIndex = terminals.firstIndex(of: item)
+        let group = terminals[itemIndex ?? 0].isGrouped ? terminals[itemIndex ?? 0] : terminals[(itemIndex ?? 1)-1]
+        droppedItem.loadDataRepresentation(forTypeIdentifier: "terminal.id.uuidString") { data, _ in
+                            guard let data = data,
+                            let id = String(data: data, encoding: .utf8),
+                            let droppedItemId = UUID(uuidString: id) else { return }
+                    DispatchQueue.main.async {
+                        if let droppedItemIndex = terminals.firstIndex(where: { $0.id == droppedItemId }) {
+                            let droppedItem = terminals[droppedItemIndex]
+                            terminals.remove(at: droppedItemIndex)
+                            groups = [droppedItem]
+                        }
+                    }
+                }
+        return true
     }
 }
 
@@ -47,6 +73,9 @@ struct DebugAreaTerminalView: View {
 
     @State
     var terminals: [DebugAreaTerminal] = []
+
+    @State
+    var groups: [DebugAreaTerminal] = []
 
     @State
     private var selectedIDs: Set<UUID> = [UUID()]
@@ -209,7 +238,13 @@ struct DebugAreaTerminalView: View {
                         isSelected: selectedIDs.contains(terminal.id),
                         selectedIDs: selectedIDs
                     )
+                    .background(terminal.isGrouped ? .red : .blue)
                     .tag(terminal.id)
+                    .onDrag {
+                        print("dragging")
+                        return NSItemProvider(object: "\(terminal.id.uuidString)" as NSString)
+                    }
+                    .onDrop(of: ["terminal.id.uuidString"], delegate: ListItemDropDelegate(terminals: $terminals, groups: $groups, item: terminal))
                 }
                 .onMove(perform: moveItems)
             }
